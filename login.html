@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mySUNI PI - 로그인</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #6366F1; --primary-light: #818CF8; --primary-dark: #4F46E5;
+}
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 30%, #3730A3 60%, #1E1B4B 100%);
+  overflow: hidden; position: relative;
+}
+
+/* Animated background shapes */
+.bg-shape {
+  position: absolute; border-radius: 50%; opacity: .07; pointer-events: none;
+  animation: floatShape 20s ease-in-out infinite;
+}
+.bg-shape:nth-child(1) { width: 500px; height: 500px; top: -120px; left: -100px; background: #818CF8; animation-duration: 22s; }
+.bg-shape:nth-child(2) { width: 350px; height: 350px; bottom: -80px; right: -60px; background: #6366F1; animation-duration: 18s; animation-delay: -5s; }
+.bg-shape:nth-child(3) { width: 250px; height: 250px; top: 40%; left: 60%; background: #A78BFA; animation-duration: 25s; animation-delay: -10s; }
+@keyframes floatShape {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-20px, 30px) scale(.95); }
+  75% { transform: translate(15px, 15px) scale(1.02); }
+}
+
+.login-container {
+  position: relative; z-index: 1; width: 100%; max-width: 420px; padding: 20px;
+}
+
+.login-card {
+  background: rgba(255,255,255,.95); backdrop-filter: blur(20px);
+  border-radius: 24px; padding: 48px 40px 40px; box-shadow: 0 24px 64px rgba(0,0,0,.25);
+  border: 1px solid rgba(255,255,255,.2);
+}
+
+.login-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.login-logo img { height: 36px; margin-bottom: 10px; }
+.login-logo .logo-title {
+  font-size: .85rem; font-weight: 700; color: #6366F1; letter-spacing: .08em; text-transform: uppercase;
+}
+.login-logo .logo-subtitle {
+  font-size: .78rem; color: #9CA3AF; margin-top: 4px; font-weight: 500;
+}
+
+.form-group { margin-bottom: 18px; }
+.form-group label {
+  display: block; font-size: .82rem; font-weight: 700; color: #4B5563; margin-bottom: 6px; letter-spacing: .01em;
+}
+.form-input {
+  width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 12px;
+  font-size: .95rem; font-family: inherit; background: #fff; transition: all .2s; color: #1E1B4B;
+}
+.form-input:focus {
+  outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+}
+.form-input::placeholder { color: #C5C7CC; }
+
+.login-btn {
+  width: 100%; padding: 13px; border: none; border-radius: 12px;
+  background: linear-gradient(135deg, #6366F1, #4F46E5); color: #fff;
+  font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .25s; font-family: inherit;
+  margin-top: 6px; letter-spacing: .02em;
+}
+.login-btn:hover { background: linear-gradient(135deg, #4F46E5, #4338CA); box-shadow: 0 6px 20px rgba(99,102,241,.35); transform: translateY(-1px); }
+.login-btn:active { transform: translateY(0); }
+
+.admin-link {
+  text-align: center; margin-top: 20px;
+}
+.admin-link button {
+  background: none; border: none; color: #9CA3AF; font-size: .8rem; cursor: pointer;
+  font-family: inherit; font-weight: 500; transition: color .2s;
+}
+.admin-link button:hover { color: var(--primary); }
+
+.error-msg {
+  display: none; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;
+  border-radius: 10px; padding: 10px 14px; font-size: .85rem; font-weight: 600;
+  margin-bottom: 16px; text-align: center;
+}
+.error-msg.show { display: block; animation: shake .4s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+
+/* Admin login overlay */
+.admin-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(30,27,75,.5); backdrop-filter: blur(4px);
+  z-index: 10; align-items: center; justify-content: center;
+}
+.admin-overlay.open { display: flex; }
+.admin-modal {
+  background: #fff; border-radius: 20px; padding: 36px 32px; width: 90%; max-width: 360px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.2); text-align: center;
+}
+.admin-modal h3 { font-size: 1.05rem; font-weight: 800; color: #1E1B4B; margin-bottom: 18px; }
+.admin-modal .form-input { margin-bottom: 14px; }
+.admin-modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+.admin-modal-actions button { flex: 1; padding: 10px; border-radius: 10px; font-size: .9rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+.admin-modal-actions .cancel-btn { background: #F3F4F6; border: none; color: #6B7280; }
+.admin-modal-actions .cancel-btn:hover { background: #E5E7EB; }
+.admin-modal-actions .confirm-btn { background: var(--primary); border: none; color: #fff; }
+.admin-modal-actions .confirm-btn:hover { background: var(--primary-dark); }
+</style>
+</head>
+<body>
+
+<div class="bg-shape"></div>
+<div class="bg-shape"></div>
+<div class="bg-shape"></div>
+
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="logo.png" alt="mySUNI">
+      <div class="logo-title">PI Management Dashboard</div>
+      <div class="logo-subtitle">성과 지표 관리 시스템</div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <form onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>이름 (한글)</label>
+        <input class="form-input" type="text" id="loginName" placeholder="예: 홍길동" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input class="form-input" type="password" id="loginPw" placeholder="영어 이름 (First Name)" required>
+      </div>
+      <button type="submit" class="login-btn">로그인</button>
+    </form>
+
+    <div class="admin-link">
+      <button onclick="openAdminLogin()">관리자 로그인</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin login modal -->
+<div class="admin-overlay" id="adminOverlay" onclick="if(event.target===this)closeAdminLogin()">
+  <div class="admin-modal">
+    <h3>관리자 로그인</h3>
+    <div class="error-msg" id="adminError"></div>
+    <form onsubmit="handleAdminLogin(event)">
+      <input class="form-input" type="password" id="adminPw" placeholder="관리자 비밀번호" required>
+      <div class="admin-modal-actions">
+        <button type="button" class="cancel-btn" onclick="closeAdminLogin()">취소</button>
+        <button type="submit" class="confirm-btn">로그인</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="cloud-sync.js"></script>
+<script>
+// ═══════════════════════════════════════
+//  USER DATABASE (same as Comm.day)
+// ═══════════════════════════════════════
+const USERS = [
+  // 총장
+  {name_kr:'박상규',name_en:'Simon Park',dept:'총장',role:'총장',password:'Simon'},
+  // 변화추진
+  {name_kr:'은현지',name_en:'Jay Eun',dept:'변화추진',role:'담당',password:'Jay'},
+  {name_kr:'성용모',name_en:'Morgan Sung',dept:'변화추진',role:'팀장',password:'Morgan'},
+  {name_kr:'우창수',name_en:'Jude Woo',dept:'변화추진',role:'팀장',password:'Jude'},
+  {name_kr:'조만희',name_en:'Joe Jo',dept:'변화추진',role:'팀장',password:'Joe'},
+  {name_kr:'강세현',name_en:'Senny Kang',dept:'변화추진',role:'PM',password:'Senny'},
+  {name_kr:'김세빈',name_en:'Logan Kim',dept:'변화추진',role:'RF',password:'Logan'},
+  {name_kr:'이솔',name_en:'Summer Lee',dept:'변화추진',role:'PM',password:'Summer'},
+  {name_kr:'임선영',name_en:'Celine Lim',dept:'변화추진',role:'RF',password:'Celine'},
+  {name_kr:'정용준',name_en:'Mohammed Jeong',dept:'변화추진',role:'RF',password:'Mohammed'},
+  {name_kr:'강현이',name_en:'Michaela Kang',dept:'변화추진',role:'RF',password:'Michaela'},
+  {name_kr:'김현수',name_en:'Hans Kim',dept:'변화추진',role:'RF',password:'Hans'},
+  {name_kr:'박종민',name_en:'Noah Park',dept:'변화추진',role:'RF',password:'Noah'},
+  {name_kr:'신현택',name_en:'Sean Shin',dept:'변화추진',role:'RF',password:'Sean'},
+  // 사무지원그룹
+  {name_kr:'박미라',name_en:'Leah Park',dept:'사무지원그룹',role:'PM',password:'Leah'},
+  {name_kr:'이슬기',name_en:'Sophia Lee',dept:'사무지원그룹',role:'PM',password:'Sophia'},
+  {name_kr:'김서연',name_en:'Anne Kim',dept:'사무지원그룹',role:'PM',password:'Anne'},
+  {name_kr:'강병준',name_en:'Luca Kang',dept:'사무지원그룹',role:'PM',password:'Luca'},
+  // AI역량육성
+  {name_kr:'문태호',name_en:'Thomas Moon',dept:'AI역량육성',role:'담당',password:'Thomas'},
+  {name_kr:'조영찬',name_en:'Aiden Jo',dept:'AI역량육성',role:'팀장',password:'Aiden'},
+  {name_kr:'조인후',name_en:'Joey Cho',dept:'AI역량육성',role:'팀장',password:'Joey'},
+  {name_kr:'이승훈',name_en:'Justin Lee',dept:'AI역량육성',role:'팀장',password:'Justin'},
+  {name_kr:'양다은',name_en:'Olivia Yang',dept:'AI역량육성',role:'RF',password:'Olivia'},
+  {name_kr:'박귀애',name_en:'Anne Park',dept:'AI역량육성',role:'RF',password:'Anne'},
+  {name_kr:'김다예',name_en:'Danielle Kim',dept:'AI역량육성',role:'RF',password:'Danielle'},
+  {name_kr:'김인혜',name_en:'Inés Kim',dept:'AI역량육성',role:'RF',password:'Inés'},
+  {name_kr:'문가은',name_en:'Gaelle Moon',dept:'AI역량육성',role:'RF',password:'Gaelle'},
+  {name_kr:'이화연',name_en:'Gloria Lee',dept:'AI역량육성',role:'RF',password:'Gloria'},
+  {name_kr:'백지연',name_en:'Elsa Baik',dept:'AI역량육성',role:'RF',password:'Elsa'},
+  {name_kr:'조민호',name_en:'David Jo',dept:'AI역량육성',role:'RF',password:'David'},
+  {name_kr:'김남연',name_en:'Anna Kim',dept:'AI역량육성',role:'RF',password:'Anna'},
+  {name_kr:'김주희',name_en:'Julie Kim',dept:'AI역량육성',role:'RF',password:'Julie'},
+  {name_kr:'양하준',name_en:'Jun Yang',dept:'AI역량육성',role:'RF',password:'Jun'},
+  {name_kr:'추현준',name_en:'Shane Chu',dept:'AI역량육성',role:'RF',password:'Shane'},
+  // 러닝플랫폼
+  {name_kr:'김혜진',name_en:'Jin Kim',dept:'러닝플랫폼',role:'담당',password:'Jin'},
+  {name_kr:'장활훈',name_en:'James Jang',dept:'러닝플랫폼',role:'팀장',password:'James'},
+  {name_kr:'최윤홍',name_en:'Uni Choi',dept:'러닝플랫폼',role:'팀장',password:'Uni'},
+  {name_kr:'김선아',name_en:'Sara Kim',dept:'러닝플랫폼',role:'RF',password:'Sara'},
+  {name_kr:'이규영',name_en:'Shawn Lee',dept:'러닝플랫폼',role:'RF',password:'Shawn'},
+  {name_kr:'김민경',name_en:'Megan Kim',dept:'러닝플랫폼',role:'RF',password:'Megan'},
+  {name_kr:'김동규',name_en:'Ben Kim',dept:'러닝플랫폼',role:'RF',password:'Ben'},
+  {name_kr:'김상규',name_en:'Jaden Kim',dept:'러닝플랫폼',role:'RF',password:'Jaden'},
+  {name_kr:'이승준',name_en:'Chris Rhie',dept:'러닝플랫폼',role:'RF',password:'Chris'},
+  {name_kr:'신용환',name_en:'Andrew Shin',dept:'러닝플랫폼',role:'RF',password:'Andrew'},
+  {name_kr:'전유진',name_en:'Erica Jeon',dept:'러닝플랫폼',role:'RF',password:'Erica'},
+  {name_kr:'정소미',name_en:'Ella Jeong',dept:'러닝플랫폼',role:'RF',password:'Ella'},
+  {name_kr:'최원정',name_en:'Joy Choi',dept:'러닝플랫폼',role:'RF',password:'Joy'},
+  // 경영관리역량
+  {name_kr:'진선미',name_en:'Mia Jean',dept:'경영관리역량',role:'담당',password:'Mia'},
+  {name_kr:'류태호',name_en:'Lucas Ryu',dept:'경영관리역량',role:'팀장',password:'Lucas'},
+  {name_kr:'임성하',name_en:'Olive Lim',dept:'경영관리역량',role:'팀장',password:'Olive'},
+  {name_kr:'조한나',name_en:'Hannah Cho',dept:'경영관리역량',role:'팀장',password:'Hannah'},
+  {name_kr:'김재윤',name_en:'Joey Kim',dept:'경영관리역량',role:'RF',password:'Joey'},
+  {name_kr:'고유진',name_en:'Irene Koh',dept:'경영관리역량',role:'RF',password:'Irene'},
+  {name_kr:'김보경',name_en:'Katie Kim',dept:'경영관리역량',role:'RF',password:'Katie'},
+  {name_kr:'김송이',name_en:'Song Kim',dept:'경영관리역량',role:'RF',password:'Song'},
+  {name_kr:'심희연',name_en:'May Shim',dept:'경영관리역량',role:'RF',password:'May'},
+  {name_kr:'박서현',name_en:'Ellie Park',dept:'경영관리역량',role:'RF',password:'Ellie'},
+  {name_kr:'박은경',name_en:'Erika Park',dept:'경영관리역량',role:'RF',password:'Erika'},
+  {name_kr:'안정민',name_en:'Ash An',dept:'경영관리역량',role:'RF',password:'Ash'},
+  {name_kr:'오하나',name_en:'Hana Oh',dept:'경영관리역량',role:'RF',password:'Hana'},
+  {name_kr:'이수지',name_en:'Suzy Lee',dept:'경영관리역량',role:'RF',password:'Suzy'},
+  {name_kr:'이상진',name_en:'Leo Lee',dept:'경영관리역량',role:'RF',password:'Leo'},
+  {name_kr:'조혜경',name_en:'Hailey Cho',dept:'경영관리역량',role:'RF',password:'Hailey'},
+  {name_kr:'최원기',name_en:'Kai Choi',dept:'경영관리역량',role:'RF',password:'Kai'},
+  // 미래반도체
+  {name_kr:'이송만',name_en:'Kevin Lee',dept:'미래반도체',role:'담당',password:'Kevin'},
+  {name_kr:'홍종호',name_en:'Damon Hong',dept:'미래반도체',role:'RF',password:'Damon'},
+  {name_kr:'김호섭',name_en:'Henry Kim',dept:'미래반도체',role:'RF',password:'Henry'},
+  // SK아카데미
+  {name_kr:'임규남',name_en:'Charlie Im',dept:'SK아카데미',role:'원장',password:'Charlie'},
+  // SKMS실천
+  {name_kr:'김진택',name_en:'Brian Kim',dept:'SKMS실천',role:'담당',password:'Brian'},
+  {name_kr:'윤언철',name_en:'Paul Yoon',dept:'SKMS실천지원팀',role:'RF',password:'Paul'},
+  {name_kr:'임창현',name_en:'Chris Im',dept:'SKMS실천지원팀',role:'RF',password:'Chris'},
+  {name_kr:'권석균',name_en:'Aaron Kwon',dept:'SKMS실천지원팀',role:'RF',password:'Aaron'},
+  {name_kr:'이희진',name_en:'Jenny Lee',dept:'SKMS실천지원팀',role:'RF',password:'Jenny'},
+  {name_kr:'정재한',name_en:'Jeremy Jeong',dept:'SKMS실천지원팀',role:'RF',password:'Jeremy'},
+  {name_kr:'여규원',name_en:'Lena Yoh',dept:'SKMS실천지원팀',role:'RF',password:'Lena'},
+  {name_kr:'이경란',name_en:'Nora Lee',dept:'SKMS실천지원팀',role:'PM',password:'Nora'},
+  {name_kr:'송일섭',name_en:'Joseph Song',dept:'SKMS실천지원팀',role:'RF',password:'Joseph'},
+  {name_kr:'박성진',name_en:'Sung Park',dept:'SKMS교육팀',role:'RF',password:'Sung'},
+  {name_kr:'최유현',name_en:'Alice Choi',dept:'SKMS교육팀',role:'RF',password:'Alice'},
+  {name_kr:'김지원',name_en:'Jenny Kim',dept:'SKMS교육팀',role:'RF',password:'Jenny'},
+  {name_kr:'길봉균',name_en:'Jayden Keel',dept:'SKMS교육팀',role:'RF',password:'Jayden'},
+  // 리더십개발
+  {name_kr:'허재훈',name_en:'Joshua Hur',dept:'리더십개발',role:'담당',password:'Joshua'},
+  {name_kr:'장수재',name_en:'Daniel Jang',dept:'리더십개발팀',role:'팀장',password:'Daniel'},
+  {name_kr:'이정권',name_en:'Jake Lee',dept:'리더십진단팀',role:'팀장',password:'Jake'},
+  {name_kr:'이병아',name_en:'Christine Lee',dept:'미래경영자육성팀',role:'팀장',password:'Christine'},
+  {name_kr:'김성혜',name_en:'Hailey Kim',dept:'리더십개발팀',role:'RF',password:'Hailey'},
+  {name_kr:'권정미',name_en:'Jamie Kwon',dept:'리더십개발팀',role:'RF',password:'Jamie'},
+  {name_kr:'백송이',name_en:'Lia Baek',dept:'리더십개발팀',role:'RF',password:'Lia'},
+  {name_kr:'김주미',name_en:'Jenna Kim',dept:'리더십개발팀',role:'RF',password:'Jenna'},
+  {name_kr:'배수정',name_en:'Crystal Bae',dept:'리더십진단팀',role:'RF',password:'Crystal'},
+  {name_kr:'윤용식',name_en:'Steve Yoon',dept:'리더십진단팀',role:'RF',password:'Steve'},
+  {name_kr:'최수경',name_en:'Sophia Choi',dept:'리더십진단팀',role:'RF',password:'Sophia'},
+  {name_kr:'이재윤',name_en:'Jay Lee',dept:'리더십진단팀',role:'RF',password:'Jay'},
+  {name_kr:'김세민',name_en:'Selena Kim',dept:'리더십진단팀',role:'RF',password:'Selena'},
+  {name_kr:'정성훈',name_en:'Ryan Jung',dept:'미래경영자육성팀',role:'RF',password:'Ryan'},
+  {name_kr:'신찬욱',name_en:'Anthony Shin',dept:'미래경영자육성팀',role:'RF',password:'Anthony'},
+  {name_kr:'이은경',name_en:'Emma Lee',dept:'미래경영자육성팀',role:'RF',password:'Emma'},
+];
+
+const USER_STORAGE_KEY = 'pi_user_directory_v1';
+const REPRESENTATIVE_ADMIN_NAME = '신현택';
+const REPRESENTATIVE_ADMIN_ROLE = 'RF';
+const ADMIN_PASSWORD = '1234';
+
+function makeUserId(user) {
+  return `${user.name_kr}__${user.dept}__${user.role}`.replace(/\s+/g, '_');
+}
+
+function normalizeUsers(users) {
+  return users.map(user => ({
+    id: user.id || makeUserId(user),
+    name_kr: user.name_kr || '',
+    name_en: user.name_en || '',
+    dept: user.dept || '',
+    role: user.role || '',
+    password: user.password || String(user.name_en || '').trim().split(/\s+/)[0] || 'password',
+    adminLevel: user.name_kr === REPRESENTATIVE_ADMIN_NAME && user.role === REPRESENTATIVE_ADMIN_ROLE
+      ? 'superadmin'
+      : (user.adminLevel === 'admin' || user.adminLevel === 'superadmin' ? user.adminLevel : 'user'),
+  }));
+}
+
+function loadUserDirectory() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(USER_STORAGE_KEY));
+    if (Array.isArray(parsed) && parsed.length > 0) return normalizeUsers(parsed);
+  } catch(e) {}
+  const seeded = normalizeUsers(USERS);
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(seeded));
+  if (window.queueCloudSync) window.queueCloudSync(USER_STORAGE_KEY, seeded);
+  return seeded;
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  await window.loginCloudReadyPromise;
+  const name = document.getElementById('loginName').value.trim();
+  const pw = document.getElementById('loginPw').value.trim();
+
+  const user = loadUserDirectory().find(u => u.name_kr === name && u.password === pw);
+  if (!user) {
+    showError('errorMsg', '이름 또는 비밀번호가 올바르지 않습니다.');
+    return;
+  }
+
+  // Save session
+  sessionStorage.setItem('pi_user', JSON.stringify({
+    userId: user.id,
+    name_kr: user.name_kr,
+    name_en: user.name_en,
+    dept: user.dept,
+    role: user.role,
+    adminLevel: user.adminLevel,
+    isAdmin: user.adminLevel === 'admin' || user.adminLevel === 'superadmin',
+    loginAt: new Date().toISOString(),
+  }));
+
+  window.location.href = 'index.html';
+}
+
+function openAdminLogin() {
+  document.getElementById('adminOverlay').classList.add('open');
+  document.getElementById('adminPw').focus();
+}
+function closeAdminLogin() {
+  document.getElementById('adminOverlay').classList.remove('open');
+  document.getElementById('adminPw').value = '';
+}
+
+async function handleAdminLogin(e) {
+  e.preventDefault();
+  await window.loginCloudReadyPromise;
+  const pw = document.getElementById('adminPw').value.trim();
+  if (pw !== ADMIN_PASSWORD) {
+    showError('adminError', '비밀번호가 올바르지 않습니다.');
+    return;
+  }
+  sessionStorage.setItem('pi_user', JSON.stringify({
+    userId: 'temp-admin',
+    name_kr: '관리자',
+    name_en: 'Admin',
+    dept: 'mySUNI',
+    role: '관리자',
+    adminLevel: 'admin',
+    isAdmin: true,
+    loginAt: new Date().toISOString(),
+  }));
+  window.location.href = 'index.html';
+}
+
+window.loginCloudReadyPromise = (async function bootstrapLogin() {
+  await window.initPiCloudSync?.({ seedDefaults: true });
+  loadUserDirectory();
+})();
+
+// If already logged in, redirect
+if (sessionStorage.getItem('pi_user')) {
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>
