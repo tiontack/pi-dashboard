@@ -372,7 +372,6 @@ select.form-input { cursor: pointer; }
 }
 .course-list-header > div { text-align: center; }
 .course-item {
-  cursor: pointer;
   transition: background .15s;
   text-align: center;
 }
@@ -2738,6 +2737,7 @@ function setVal(code, field, val) {
 }
 
 function parseNum(s) { if(!s && s!==0) return 0; const n=parseFloat(String(s).replace(/[^0-9.\-]/g,'')); return isNaN(n)?0:n; }
+function escapeHtml(s) { if(!s && s!==0) return ''; const d=document.createElement('div'); d.textContent=String(s); return d.innerHTML; }
 
 const USER_STORAGE_KEY = 'pi_user_directory_v1';
 const REPRESENTATIVE_ADMIN_NAME = '신현택';
@@ -3946,18 +3946,19 @@ function renderCourses() {
     const i = c._idx;
     const rowNum = filtered.length - startIdx - idx;
     const areaClass = c.area==='AX 가속화'?'ax':c.area==='SKMS실천'?'skms':c.area==='Globalization'?'global':'infra';
-    const period = (c.start && c.end) ? `${c.start} ~ ${c.end}` : '-';
-    const authorName = c.authorName || inferFallbackAuthorName(c);
+    const period = (c.start && c.end) ? `${escapeHtml(c.start)} ~ ${escapeHtml(c.end)}` : '-';
+    const authorName = escapeHtml(c.authorName || inferFallbackAuthorName(c));
+    const orgDisplay = escapeHtml(normalizeCourseOrg(c.org));
     html += `<div class="course-item">
       <div class="course-cell number">${rowNum}</div>
-      <div class="course-cell"><span class="area-tag ${areaClass}">${c.area}</span></div>
-      <div class="course-cell name" title="${c.name || ''}">
-        <span class="course-title">${c.name || '-'}</span>
+      <div class="course-cell"><span class="area-tag ${areaClass}">${escapeHtml(c.area)}</span></div>
+      <div class="course-cell name" title="${escapeHtml(c.name || '')}">
+        <span class="course-title">${escapeHtml(c.name) || '-'}</span>
       </div>
-      <div class="course-cell meta">${c.org ? `<span class="org-chip" title="${normalizeCourseOrg(c.org)}">${normalizeCourseOrg(c.org)}</span>` : '-'}</div>
-      <div class="course-cell author">${authorName}${c.authorRole ? ` ${c.authorRole}` : ''}</div>
+      <div class="course-cell meta">${c.org ? `<span class="org-chip" title="${orgDisplay}">${orgDisplay}</span>` : '-'}</div>
+      <div class="course-cell author">${authorName}${c.authorRole ? ` ${escapeHtml(c.authorRole)}` : ''}</div>
       <div class="course-cell period">${period}</div>
-      <div class="course-cell count">이수 ${c.complete||0}명</div>
+      <div class="course-cell count">이수 ${escapeHtml(c.complete||0)}명</div>
       <div class="course-actions">
         <button class="btn btn-sm btn-outline" onclick="openCourseModal(${i})" style="color:#2563EB;">수정</button>
         <button class="btn btn-sm btn-outline" onclick="deleteCourse(${i})">삭제</button>
@@ -5052,9 +5053,9 @@ function getLinkedCoursesInlineForCourses(piItem, courses) {
   let cards = '';
   areaCourses.forEach(c => {
     cards += `<div style="display:inline-flex;align-items:center;gap:6px;background:#F5F3FF;border:1px solid #E9E5FF;border-radius:8px;padding:4px 10px;font-size:.78rem;white-space:nowrap;">
-      <strong style="color:var(--primary);">${c.name}</strong>
-      <span style="color:var(--text-muted);">${c.batch||''}</span>
-      <span style="color:var(--text-secondary);">${c.metricLabel} <strong style="color:var(--primary);">${c.metricValue}</strong></span>
+      <strong style="color:var(--primary);">${escapeHtml(c.name)}</strong>
+      <span style="color:var(--text-muted);">${escapeHtml(c.batch||'')}</span>
+      <span style="color:var(--text-secondary);">${escapeHtml(c.metricLabel)} <strong style="color:var(--primary);">${escapeHtml(c.metricValue)}</strong></span>
     </div>`;
   });
   return {count:areaCourses.length, html:`<div style="display:flex;flex-wrap:wrap;gap:6px;">${cards}</div>`};
@@ -5106,8 +5107,8 @@ function renderLinkedData(piItem, indicator, area) {
 
     html += `<div class="linked-card">
       <div class="lc-top">
-        <span class="lc-name">${c.name}</span>
-        <span class="lc-batch">${c.batch||''}</span>
+        <span class="lc-name">${escapeHtml(c.name)}</span>
+        <span class="lc-batch">${escapeHtml(c.batch||'')}</span>
       </div>
       <div class="lc-meta">
         <span>${period}</span>
@@ -5185,6 +5186,7 @@ function computePiCurrentValue(piItem, courses) {
 function syncCoursesToPI() {
   const courses = loadCourses();
   const store = loadStore();
+  let changed = false;
 
   // isLms가 아닌 PI_ITEMS만 대상
   const syncItems = PI_ITEMS.filter(p => !p.isLms);
@@ -5192,12 +5194,15 @@ function syncCoursesToPI() {
   syncItems.forEach(p => {
     if (!store[p.code]) store[p.code] = {};
     const computed = computePiCurrentValue(p, courses);
-    store[p.code].current = computed;
     if (!store[p.code].currentByYear) store[p.code].currentByYear = {};
-    store[p.code].currentByYear[currentDataYear] = computed;
+    if (store[p.code].current !== computed || store[p.code].currentByYear[currentDataYear] !== computed) {
+      store[p.code].current = computed;
+      store[p.code].currentByYear[currentDataYear] = computed;
+      changed = true;
+    }
   });
 
-  saveStore(store);
+  if (changed) saveStore(store);
 }
 
 function saveEditModal(e) {
@@ -6019,9 +6024,20 @@ window.addEventListener('storage', function(){ if (document.visibilityState === 
   ensureSampleOrgTargets();
   renderLanding();
   if (window.isPiCloudSyncEnabled?.()) {
+    let _lastSyncHash = '';
+    function getLocalDataHash() {
+      return [STORAGE_KEY, COURSE_KEY, ORG_TARGET_KEY, ORG_TARGET_META_KEY].map(k => (localStorage.getItem(k)||'').length).join(',');
+    }
+    _lastSyncHash = getLocalDataHash();
     setInterval(async () => {
       const synced = await window.pullPiCloudToLocal?.();
-      if (synced) renderPage(currentPage);
+      if (synced) {
+        const newHash = getLocalDataHash();
+        if (newHash !== _lastSyncHash) {
+          _lastSyncHash = newHash;
+          renderPage(currentPage);
+        }
+      }
     }, 30000);
   }
 })();
