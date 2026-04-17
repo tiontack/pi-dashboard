@@ -3587,7 +3587,7 @@ function renderIndicatorDetail(num) {
   const isAvgType = (ind.unit === '점' || ind.unit === '%');
 
   let html = `<div class="card fade-in"><div class="card-header"><span>${ind.name} (${ind.stage})</span><span class="badge badge-blue">${ind.unit}</span></div>`;
-  html += '<div class="table-scroll"><table class="detail-table linked-stable-table"><thead><tr><th style="width:72px;">코드</th><th style="width:138px;">영역</th><th>프로그램</th><th>지표명</th><th style="width:88px;">목표</th><th style="width:88px;">현재값</th><th style="width:82px;">달성률</th><th style="width:130px;">시기</th><th style="width:170px;">세부</th></tr></thead><tbody>';
+  html += '<div class="table-scroll"><table class="detail-table linked-stable-table"><thead><tr><th style="width:72px;">코드</th><th style="width:138px;">영역</th><th>프로그램</th><th>지표명</th><th style="width:88px;">목표</th><th style="width:88px;">현재값</th><th style="width:82px;">달성률</th><th style="width:170px;">세부</th></tr></thead><tbody>';
 
   let grandTgt = 0, grandCur = 0, grandAchSum = 0, grandAchCnt = 0, grandItemCnt = 0;
 
@@ -3614,7 +3614,6 @@ function renderIndicatorDetail(num) {
         <td class="editable" onclick="openEditModal('${p.code}')" style="font-weight:600">${fmtNum(tgt)}</td>
         <td class="editable" onclick="openEditModal('${p.code}')" style="font-weight:700;color:var(--primary)">${fmtNum(cur)}</td>
         <td style="font-weight:700;color:${achColor}">${ach>0?ach+'%':'-'}</td>
-        <td style="font-size:.82rem;color:var(--text-secondary)">${p.timing}</td>
         <td style="font-size:.82rem;color:var(--text-secondary);white-space:nowrap;">
           ${linked.count > 0 ? `<button class="linked-open-btn" onclick="openLinkedCoursesModal('${p.code}')" title="연동 과정 열람">연동 과정 ${linked.count}건</button>` : '-'}
         </td>
@@ -3630,7 +3629,7 @@ function renderIndicatorDetail(num) {
       <td style="font-weight:700">${isAvgType ? parseFloat(subTgt).toFixed(1) : fmtNum(subTgt)}</td>
       <td style="font-weight:700;color:var(--primary)">${subCur === 0 && isAvgType ? '-' : isAvgType ? parseFloat(subCur).toFixed(1) : fmtNum(subCur)}</td>
       <td style="font-weight:700;color:${subAchColor}">${subAch>0?subAch+'%':'-'}</td>
-      <td></td><td></td>
+      <td></td>
     </tr>`;
     grandTgt += areaTgt; grandCur += areaCur;
     grandAchSum += areaAchSum; grandAchCnt += areaAchCnt;
@@ -3647,12 +3646,12 @@ function renderIndicatorDetail(num) {
       <td style="font-weight:800">${isAvgType ? parseFloat(gTgt).toFixed(1) : fmtNum(gTgt)}</td>
       <td style="font-weight:800;color:var(--primary)">${gCur === 0 && isAvgType ? '-' : isAvgType ? parseFloat(gCur).toFixed(1) : fmtNum(gCur)}</td>
       <td style="font-weight:800;color:${gAchColor}">${gAch>0?gAch+'%':'-'}</td>
-      <td></td><td></td>
+      <td></td>
     </tr>`;
   }
 
   if (lmsItems.length > 0) {
-    html += `<tr class="lms-section-row"><td colspan="9" style="text-align:left;color:var(--lms);">LMS 데이터</td></tr>`;
+    html += `<tr class="lms-section-row"><td colspan="8" style="text-align:left;color:var(--lms);">LMS 데이터</td></tr>`;
     lmsItems.forEach(p => {
       const cur = getEffectiveCurrent(p.code, store) || '-';
       const tgt = getEffectiveTarget(p.code, store) || '-';
@@ -3667,10 +3666,9 @@ function renderIndicatorDetail(num) {
         <td class="editable" onclick="openEditModal('${p.code}')" style="font-weight:600">${fmtNum(tgt)}</td>
         <td class="editable" onclick="openEditModal('${p.code}')" style="font-weight:700;color:var(--lms)">${fmtNum(cur)}</td>
         <td style="font-weight:700;color:${achColor}">${ach>0?ach+'%':'-'}</td>
-        <td style="font-size:.82rem;color:var(--text-secondary)">${p.timing}</td>
         <td style="font-size:.82rem;color:var(--text-muted)">${getLatestLmsEntry(p.code, store)?.periodLabel || '기준 미지정'}</td>
       </tr>`;
-      html += `<tr style="display:none;"><td colspan="9" style="padding:8px 16px;background:#FDF2F8;border-top:none;">
+      html += `<tr style="display:none;"><td colspan="8" style="padding:8px 16px;background:#FDF2F8;border-top:none;">
         <span style="font-size:.8rem;color:var(--lms);font-weight:600;">LMS 직접 입력 방식</span>
       </td></tr>`;
     });
